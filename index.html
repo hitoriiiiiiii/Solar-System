@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Solar System</title>
+    <style>
+      html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; }
+      body { width: 100vw; height: 100vh; }
+      #resetBtn {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        z-index: 10;
+        padding: 8px 18px;
+        font-size: 1rem;
+        background: #222;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        opacity: 0.85;
+      }
+      #resetBtn:hover { opacity: 1; }
+      canvas { display: block; width: 100vw; height: 100vh; }
+    </style>
+</head>
+<body>
+    <button id="resetBtn">Reset</button>
+    <canvas id="draw"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
