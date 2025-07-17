@@ -2,6 +2,8 @@
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
+// Add fog for smooth fade-out on zoom
+scene.fog = new THREE.Fog(scene.background, 600, 1000);
 
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -20,7 +22,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.minDistance = 1;
-controls.maxDistance = 1000;
+controls.maxDistance = 5000;
 
 // --- Textures ---
 const textureLoader = new THREE.TextureLoader();
