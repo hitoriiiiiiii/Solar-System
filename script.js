@@ -39,7 +39,7 @@ const planetData = [
     size: 3,
     color: 0xaaaaaa, // gray
     orbit: 28,
-    speed: 0.02,
+    speed: 0.040, // 47.9 km/s
     mesh: null,
     pos: new THREE.Vector3()
   },
@@ -48,7 +48,7 @@ const planetData = [
     size: 4,
     color: 0xffb380, // orange
     orbit: 38,
-    speed: 0.015,
+    speed: 0.029, // 35.0 km/s
     mesh: null,
     pos: new THREE.Vector3()
   },
@@ -57,7 +57,7 @@ const planetData = [
     size: 5,
     color: 0x3399ff, // blue
     orbit: 50,
-    speed: 0.012,
+    speed: 0.025, // 29.8 km/s
     mesh: null,
     pos: new THREE.Vector3()
   },
@@ -66,7 +66,7 @@ const planetData = [
     size: 4,
     color: 0xff3300, // red
     orbit: 62,
-    speed: 0.01,
+    speed: 0.020, // 24.1 km/s
     mesh: null,
     pos: new THREE.Vector3()
   },
@@ -75,7 +75,7 @@ const planetData = [
     size: 11,
     color: 0xffe5b4, // light tan
     orbit: 80,
-    speed: 0.008,
+    speed: 0.011, // 13.1 km/s
     mesh: null,
     pos: new THREE.Vector3()
   },
@@ -84,7 +84,7 @@ const planetData = [
     size: 9.5,
     color: 0xf7e7ce, // pale yellow
     orbit: 100,
-    speed: 0.006,
+    speed: 0.008, // 9.7 km/s
     mesh: null,
     pos: new THREE.Vector3()
   },
@@ -93,7 +93,7 @@ const planetData = [
     size: 8,
     color: 0x7fffd4, // aquamarine
     orbit: 120,
-    speed: 0.004,
+    speed: 0.006, // 6.8 km/s
     mesh: null,
     pos: new THREE.Vector3()
   },
@@ -102,7 +102,7 @@ const planetData = [
     size: 7.5,
     color: 0x4169e1, // royal blue
     orbit: 160,
-    speed: 0.003,
+    speed: 0.004, // 5.4 km/s
     mesh: null,
     pos: new THREE.Vector3()
   }
