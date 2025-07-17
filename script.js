@@ -24,6 +24,7 @@ controls.maxDistance = 1000;
 
 // --- Textures ---
 const textureLoader = new THREE.TextureLoader();
+const AU_TO_UNITS = 50; // 1 AU = 50 units for visualization
 const planetData = [
   {
     name: "Sun",
@@ -32,13 +33,13 @@ const planetData = [
     orbit: 0,
     speed: 0,
     mesh: null,
-    pos: new THREE.Vector3(0, 0, 0)
+    pos: new THREE.Vector3(0, 0, 0) // Ensure Sun is at (0,0,0)
   },
   {
     name: "Mercury",
     size: 3,
     color: 0xaaaaaa, // gray
-    orbit: 28,
+    orbit: 0.39 * AU_TO_UNITS, // 0.39 AU
     speed: 0.040, // 47.9 km/s
     mesh: null,
     pos: new THREE.Vector3()
@@ -47,7 +48,7 @@ const planetData = [
     name: "Venus",
     size: 4,
     color: 0xffb380, // orange
-    orbit: 38,
+    orbit: 0.72 * AU_TO_UNITS, // 0.72 AU
     speed: 0.029, // 35.0 km/s
     mesh: null,
     pos: new THREE.Vector3()
@@ -56,7 +57,7 @@ const planetData = [
     name: "Earth",
     size: 5,
     color: 0x3399ff, // blue
-    orbit: 50,
+    orbit: 1.00 * AU_TO_UNITS, // 1.00 AU
     speed: 0.025, // 29.8 km/s
     mesh: null,
     pos: new THREE.Vector3()
@@ -65,7 +66,7 @@ const planetData = [
     name: "Mars",
     size: 4,
     color: 0xff3300, // red
-    orbit: 62,
+    orbit: 1.52 * AU_TO_UNITS, // 1.52 AU
     speed: 0.020, // 24.1 km/s
     mesh: null,
     pos: new THREE.Vector3()
@@ -74,7 +75,7 @@ const planetData = [
     name: "Jupiter",
     size: 11,
     color: 0xffe5b4, // light tan
-    orbit: 80,
+    orbit: 5.20 * AU_TO_UNITS, // 5.20 AU
     speed: 0.011, // 13.1 km/s
     mesh: null,
     pos: new THREE.Vector3()
@@ -83,7 +84,7 @@ const planetData = [
     name: "Saturn",
     size: 9.5,
     color: 0xf7e7ce, // pale yellow
-    orbit: 100,
+    orbit: 9.58 * AU_TO_UNITS, // 9.58 AU
     speed: 0.008, // 9.7 km/s
     mesh: null,
     pos: new THREE.Vector3()
@@ -92,7 +93,7 @@ const planetData = [
     name: "Uranus",
     size: 8,
     color: 0x7fffd4, // aquamarine
-    orbit: 120,
+    orbit: 19.2 * AU_TO_UNITS, // 19.2 AU
     speed: 0.006, // 6.8 km/s
     mesh: null,
     pos: new THREE.Vector3()
@@ -101,7 +102,7 @@ const planetData = [
     name: "Neptune",
     size: 7.5,
     color: 0x4169e1, // royal blue
-    orbit: 160,
+    orbit: 30.05 * AU_TO_UNITS, // 30.05 AU
     speed: 0.004, // 5.4 km/s
     mesh: null,
     pos: new THREE.Vector3()
@@ -154,10 +155,10 @@ planetData.forEach((planet, i) => {
   planet.pos.set(x, y, z);
 });
 
-// --- Increase revolution speed for demo visibility ---
+// --- Increase revolution speed for all planets by 1.5x ---
 planetData.forEach((planet, i) => {
   if (i === 0) return; // Sun
-  planet.speed *= 3; // 3x faster
+  planet.speed *= 1.5;
 });
 
 // --- Draw orbit paths for each planet (except the Sun) ---
@@ -207,7 +208,63 @@ let controlsTargetStart = new THREE.Vector3();
 let controlsTargetEnd = new THREE.Vector3();
 let lastTime = performance.now();
 
-// --- Animation Loop ---
+// --- Spidercam POV Implementation ---
+let spidercamMode = false;
+let spidercamTheta = Math.PI / 4; // horizontal angle
+let spidercamPhi = Math.PI / 3;   // vertical angle
+let spidercamRadius = 200;        // distance from center
+let isDragging = false;
+let lastPointer = { x: 0, y: 0 };
+
+// Detect mobile
+const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+if (isMobile) spidercamMode = true;
+
+// Add toggle button for desktop
+if (!isMobile) {
+  const toggleBtn = document.createElement('button');
+  toggleBtn.textContent = 'Toggle Spidercam';
+  toggleBtn.style.position = 'fixed';
+  toggleBtn.style.top = '10px';
+  toggleBtn.style.right = '10px';
+  toggleBtn.style.zIndex = 1000;
+  document.body.appendChild(toggleBtn);
+  toggleBtn.addEventListener('click', () => {
+    spidercamMode = !spidercamMode;
+    controls.enabled = !spidercamMode;
+  });
+}
+
+// Touch/mouse drag for spidercam
+function onPointerDown(e) {
+  isDragging = true;
+  lastPointer.x = e.touches ? e.touches[0].clientX : e.clientX;
+  lastPointer.y = e.touches ? e.touches[0].clientY : e.clientY;
+}
+function onPointerMove(e) {
+  if (!isDragging || !spidercamMode) return;
+  const x = e.touches ? e.touches[0].clientX : e.clientX;
+  const y = e.touches ? e.touches[0].clientY : e.clientY;
+  const dx = x - lastPointer.x;
+  const dy = y - lastPointer.y;
+  lastPointer.x = x;
+  lastPointer.y = y;
+  // Adjust theta/phi
+  spidercamTheta -= dx * 0.01;
+  spidercamPhi -= dy * 0.01;
+  // Clamp phi to avoid flipping
+  spidercamPhi = Math.max(0.1, Math.min(Math.PI - 0.1, spidercamPhi));
+}
+function onPointerUp() { isDragging = false; }
+
+window.addEventListener('mousedown', onPointerDown);
+window.addEventListener('mousemove', onPointerMove);
+window.addEventListener('mouseup', onPointerUp);
+window.addEventListener('touchstart', onPointerDown);
+window.addEventListener('touchmove', onPointerMove);
+window.addEventListener('touchend', onPointerUp);
+
+// --- Animation Loop (add spidercam logic) ---
 function animate(now) {
   requestAnimationFrame(animate);
   const delta = (now - lastTime) / 1000; // seconds
@@ -232,6 +289,20 @@ function animate(now) {
   // Sun spins
   planetData[0].mesh.rotation.y += 0.25 * delta;
 
+  // --- Spidercam camera update ---
+  if (spidercamMode) {
+    // Spherical coordinates
+    const x = spidercamRadius * Math.sin(spidercamPhi) * Math.cos(spidercamTheta);
+    const y = spidercamRadius * Math.cos(spidercamPhi);
+    const z = spidercamRadius * Math.sin(spidercamPhi) * Math.sin(spidercamTheta);
+    camera.position.set(x, y, z);
+    camera.lookAt(0, 0, 0);
+    controls.enabled = false;
+  } else {
+    controls.enabled = true;
+    controls.update();
+  }
+
   // Animate camera to planet or reset
   if (animatingToTarget) {
     const duration = 1.2; // seconds
@@ -242,7 +313,6 @@ function animate(now) {
     if (t >= 1) animatingToTarget = false;
   }
 
-  controls.update();
   renderer.render(scene, camera);
 }
 animate(performance.now());
