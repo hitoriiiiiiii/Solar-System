@@ -208,63 +208,11 @@ let controlsTargetStart = new THREE.Vector3();
 let controlsTargetEnd = new THREE.Vector3();
 let lastTime = performance.now();
 
-// --- Spidercam POV Implementation ---
-let spidercamMode = false;
-let spidercamTheta = Math.PI / 4; // horizontal angle
-let spidercamPhi = Math.PI / 3;   // vertical angle
-let spidercamRadius = 200;        // distance from center
-let isDragging = false;
-let lastPointer = { x: 0, y: 0 };
+// Ensure OrbitControls is always enabled and supports zoom
+controls.enabled = true;
+controls.enableZoom = true;
 
-// Detect mobile
-const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-if (isMobile) spidercamMode = true;
-
-// Add toggle button for desktop
-if (!isMobile) {
-  const toggleBtn = document.createElement('button');
-  toggleBtn.textContent = 'Toggle Spidercam';
-  toggleBtn.style.position = 'fixed';
-  toggleBtn.style.top = '10px';
-  toggleBtn.style.right = '10px';
-  toggleBtn.style.zIndex = 1000;
-  document.body.appendChild(toggleBtn);
-  toggleBtn.addEventListener('click', () => {
-    spidercamMode = !spidercamMode;
-    controls.enabled = !spidercamMode;
-  });
-}
-
-// Touch/mouse drag for spidercam
-function onPointerDown(e) {
-  isDragging = true;
-  lastPointer.x = e.touches ? e.touches[0].clientX : e.clientX;
-  lastPointer.y = e.touches ? e.touches[0].clientY : e.clientY;
-}
-function onPointerMove(e) {
-  if (!isDragging || !spidercamMode) return;
-  const x = e.touches ? e.touches[0].clientX : e.clientX;
-  const y = e.touches ? e.touches[0].clientY : e.clientY;
-  const dx = x - lastPointer.x;
-  const dy = y - lastPointer.y;
-  lastPointer.x = x;
-  lastPointer.y = y;
-  // Adjust theta/phi
-  spidercamTheta -= dx * 0.01;
-  spidercamPhi -= dy * 0.01;
-  // Clamp phi to avoid flipping
-  spidercamPhi = Math.max(0.1, Math.min(Math.PI - 0.1, spidercamPhi));
-}
-function onPointerUp() { isDragging = false; }
-
-window.addEventListener('mousedown', onPointerDown);
-window.addEventListener('mousemove', onPointerMove);
-window.addEventListener('mouseup', onPointerUp);
-window.addEventListener('touchstart', onPointerDown);
-window.addEventListener('touchmove', onPointerMove);
-window.addEventListener('touchend', onPointerUp);
-
-// --- Animation Loop (add spidercam logic) ---
+//Animation Loop (restore classic controls logic)
 function animate(now) {
   requestAnimationFrame(animate);
   const delta = (now - lastTime) / 1000; // seconds
@@ -289,20 +237,6 @@ function animate(now) {
   // Sun spins
   planetData[0].mesh.rotation.y += 0.25 * delta;
 
-  // --- Spidercam camera update ---
-  if (spidercamMode) {
-    // Spherical coordinates
-    const x = spidercamRadius * Math.sin(spidercamPhi) * Math.cos(spidercamTheta);
-    const y = spidercamRadius * Math.cos(spidercamPhi);
-    const z = spidercamRadius * Math.sin(spidercamPhi) * Math.sin(spidercamTheta);
-    camera.position.set(x, y, z);
-    camera.lookAt(0, 0, 0);
-    controls.enabled = false;
-  } else {
-    controls.enabled = true;
-    controls.update();
-  }
-
   // Animate camera to planet or reset
   if (animatingToTarget) {
     const duration = 1.2; // seconds
@@ -313,6 +247,7 @@ function animate(now) {
     if (t >= 1) animatingToTarget = false;
   }
 
+  controls.update();
   renderer.render(scene, camera);
 }
 animate(performance.now());
