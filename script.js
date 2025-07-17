@@ -9,7 +9,9 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.set(0, 60, 120);
+// Set camera to a diagonal angle for better revolution visibility
+camera.position.set(100, 80, 100);
+camera.lookAt(0, 0, 0);
 
 const canvas = document.querySelector('canvas');
 const renderer = new THREE.WebGLRenderer({ canvas });
@@ -25,7 +27,7 @@ const textureLoader = new THREE.TextureLoader();
 const planetData = [
   {
     name: "Sun",
-    size: 16,
+    size: 20,
     color: 0xffcc00, // yellow
     orbit: 0,
     speed: 0,
@@ -99,7 +101,7 @@ const planetData = [
     name: "Neptune",
     size: 7.5,
     color: 0x4169e1, // royal blue
-    orbit: 140,
+    orbit: 160,
     speed: 0.003,
     mesh: null,
     pos: new THREE.Vector3()
@@ -108,16 +110,77 @@ const planetData = [
 
 // --- Assign unique orbital inclinations to each planet (except the Sun) ---
 const planetInclinations = [
-  0,    // Sun
-  7,    // Mercury
-  3.4,  // Venus
-  0,    // Earth
-  1.85, // Mars
-  1.3,  // Jupiter
-  2.5,  // Saturn
-  0.8,  // Uranus
-  1.8   // Neptune
+  0, // Sun
+  0, // Mercury
+  0, // Venus
+  0, // Earth
+  0, // Mars
+  0, // Jupiter
+  0, // Saturn
+  0, // Uranus
+  0  // Neptune
 ];
+
+// --- Define fixed initial angles for each planet (except the Sun) in degrees ---
+const planetInitialAngles = [
+  0,    // Sun (not used)
+  0,    // Mercury
+  45,   // Venus
+  90,   // Earth
+  135,  // Mars
+  180,  // Jupiter
+  225,  // Saturn
+  270,  // Uranus
+  300   // Neptune
+];
+
+// --- Increase orbit spacing for each planet ---
+const baseOrbit = 40;
+const orbitSpacing = 25;
+planetData.forEach((planet, i) => {
+  if (i === 0) return; // Sun stays at origin
+  planet.orbit = baseOrbit + (i - 1) * orbitSpacing;
+});
+
+// --- Set initial positions for planets (except the Sun) and store initial angle ---
+planetData.forEach((planet, i) => {
+  if (i === 0) return; // Sun stays at origin
+  planet.initialAngle = THREE.MathUtils.degToRad(planetInitialAngles[i]);
+  const angle = planet.initialAngle;
+  const inclination = THREE.MathUtils.degToRad(planetInclinations[i]);
+  const x = Math.cos(angle) * planet.orbit;
+  const y = Math.sin(angle) * planet.orbit * Math.sin(inclination);
+  const z = Math.sin(angle) * planet.orbit * Math.cos(inclination);
+  planet.pos.set(x, y, z);
+});
+
+// --- Increase revolution speed for demo visibility ---
+planetData.forEach((planet, i) => {
+  if (i === 0) return; // Sun
+  planet.speed *= 3; // 3x faster
+});
+
+// --- Draw orbit paths for each planet (except the Sun) ---
+function createOrbitPath(orbitRadius, inclination, segments = 128) {
+  const geometry = new THREE.BufferGeometry();
+  const positions = [];
+  for (let i = 0; i <= segments; i++) {
+    const theta = (i / segments) * Math.PI * 2;
+    const x = Math.cos(theta) * orbitRadius;
+    const y = Math.sin(theta) * orbitRadius * Math.sin(inclination);
+    const z = Math.sin(theta) * orbitRadius * Math.cos(inclination);
+    positions.push(x, y, z);
+  }
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  const material = new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.2, transparent: true });
+  return new THREE.Line(geometry, material);
+}
+
+planetData.forEach((planet, i) => {
+  if (i === 0) return; // skip Sun
+  const orbit = createOrbitPath(planet.orbit, THREE.MathUtils.degToRad(planetInclinations[i]));
+  scene.add(orbit);
+});
 
 function createPlanet(planet) {
   const geometry = new THREE.SphereGeometry(planet.size, 32, 32);
@@ -154,7 +217,8 @@ function animate(now) {
   const time = now * 0.001;
   planetData.forEach((planet, i) => {
     if (i === 0) return; // Sun doesn't orbit
-    const angle = time * planet.speed;
+    // Use initial angle for unique starting position
+    const angle = planet.initialAngle + time * planet.speed;
     const inclination = THREE.MathUtils.degToRad(planetInclinations[i]);
     // Calculate position in the planet's orbital plane
     const x = Math.cos(angle) * planet.orbit;
@@ -224,7 +288,7 @@ if (resetBtn) {
     animationStart = performance.now();
     cameraStart.copy(camera.position);
     controlsTargetStart.copy(controls.target);
-    cameraTarget.set(0, 60, 120);
+    cameraTarget.set(100, 80, 100);
     controlsTargetEnd.set(0, 0, 0);
   });
 }
